@@ -34,7 +34,26 @@ export default async function ShopPage({ searchParams }: { searchParams: SearchP
     limit: first(params.limit) ?? "12",
   });
 
-  const [result, categories] = await Promise.all([listProducts(parsed), getNavCategories()]);
+  let result;
+  let categories;
+  try {
+    [result, categories] = await Promise.all([listProducts(parsed), getNavCategories()]);
+  } catch (error) {
+    const message =
+      error instanceof Error && error.message.includes("MONGODB_URI is not configured")
+        ? "The live site has no MONGODB_URI. Add it in Vercel Production env vars."
+        : "The live site cannot reach MongoDB. Allow 0.0.0.0/0 in Atlas Network Access and use the same MONGODB_URI you seed locally.";
+    return (
+      <div className="mx-auto max-w-3xl px-6 py-16">
+        <p className="text-[11px] uppercase tracking-[0.22em] text-accent">Catalogue</p>
+        <h1 className="mt-2 font-display text-4xl text-brand">Shop {siteConfig.name}</h1>
+        <p className="mt-4 text-sm leading-6 text-ink/65">{message}</p>
+        <p className="mt-2 text-sm text-ink/45">
+          Open <code className="rounded bg-white px-1.5 py-0.5">/api/health</code> on this domain to confirm the database connection.
+        </p>
+      </div>
+    );
+  }
 
   const hrefFor = (page: number) => {
     const next = new URLSearchParams();

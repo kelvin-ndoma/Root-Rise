@@ -1,10 +1,23 @@
+function resolveSiteUrl() {
+  for (const value of [process.env.AUTH_URL, process.env.NEXTAUTH_URL, process.env.VERCEL_URL]) {
+    const trimmed = value?.trim();
+    if (!trimmed) continue;
+    try {
+      return new URL(trimmed.includes("://") ? trimmed : `https://${trimmed}`).origin;
+    } catch {
+      continue;
+    }
+  }
+  return "http://localhost:3000";
+}
+
 export const siteConfig = {
   name: "Root and Rise",
   legalName: "Root and Rise",
   tagline: "Cake ingredients & confectionery supplies",
   description:
     "Root and Rise is a premium marketplace for cake ingredients, decorations, baking tools, chocolates, and confectionery supplies.",
-  url: process.env.AUTH_URL ?? process.env.NEXTAUTH_URL ?? "http://localhost:3000",
+  url: resolveSiteUrl(),
   currency: "KES" as const,
   locale: "en-KE",
   supportEmail: "hello@rootandrise.test",

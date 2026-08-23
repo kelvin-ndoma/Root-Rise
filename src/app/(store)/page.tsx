@@ -33,14 +33,30 @@ const benefits = [
 ];
 
 export default async function HomePage() {
-  const [categories, bestSellers, newArrivals] = await Promise.all([
-    getFeaturedCategories(6).catch(() => []),
-    getBestSellers(8).catch(() => []),
-    getNewArrivals(8).catch(() => []),
-  ]);
+  let categories: Awaited<ReturnType<typeof getFeaturedCategories>> = [];
+  let bestSellers: Awaited<ReturnType<typeof getBestSellers>> = [];
+  let newArrivals: Awaited<ReturnType<typeof getNewArrivals>> = [];
+  let catalogError: string | null = null;
+  try {
+    [categories, bestSellers, newArrivals] = await Promise.all([
+      getFeaturedCategories(6),
+      getBestSellers(8),
+      getNewArrivals(8),
+    ]);
+  } catch (error) {
+    catalogError =
+      error instanceof Error && error.message.includes("MONGODB_URI is not configured")
+        ? "The live site has no MONGODB_URI. Add it in Vercel Production environment variables."
+        : "The live site cannot reach MongoDB. Allow 0.0.0.0/0 in Atlas Network Access and use the same MONGODB_URI you seed locally.";
+  }
 
   return (
     <div>
+      {catalogError ? (
+        <div className="border-b border-rose/20 bg-rose/10 px-6 py-3 text-center text-sm text-brand">
+          {catalogError} Check <code className="rounded bg-white/80 px-1.5 py-0.5">/api/health</code> on this domain.
+        </div>
+      ) : null}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0">
           <SafeImage

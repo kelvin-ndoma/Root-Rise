@@ -18,10 +18,16 @@ export async function connectDB() {
     mongoose.set("strictQuery", true);
     mongoose.set("sanitizeFilter", false);
 
-    globalCache.promise = mongoose.connect(getMongoUri(), {
-      bufferCommands: false,
-      dbName: "tassel",
-    });
+    globalCache.promise = mongoose
+      .connect(getMongoUri(), {
+        bufferCommands: false,
+        dbName: "tassel",
+        serverSelectionTimeoutMS: 8000,
+      })
+      .catch((error) => {
+        globalCache.promise = null;
+        throw error;
+      });
   }
 
   globalCache.conn = await globalCache.promise;
